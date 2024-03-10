@@ -22,5 +22,10 @@ Este segundo contrato es sumamente importante por la capa de seguridad que le pr
 Principalmente, casa usuario al interacturar con nuestra herramienta, contará con un dashboard que les permitirá consultar la información de sus cuentas, movimientos y la liquidez que tengan en diferentes subnets, así como transferir y hacer staking.
 
 ¡Todo esto buscando la mejor experiencia para nuestro usuarios!</p>
-<h2></h2>
+<h2>Beneficios de Hyper vault</h2>
+<img src="/public/Benefits.png">
+<h2>Modelo de negocios</h2>
+<img src="/public/money-model.png">
+<h2>Roadmap de Hyper vault</h2>
+<img src="/public/roadmap.png">
 </div>

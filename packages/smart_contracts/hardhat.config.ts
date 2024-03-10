@@ -4,13 +4,13 @@ import '@nomicfoundation/hardhat-toolbox'
 const config: HardhatUserConfig = {
   solidity: '0.8.18',
   networks: {
-    fuji: {
-      url: '​https://api.avax-test.network/ext/bc/C/rpc',
-      chainId: 43113
+    echo: {
+      url: 'https://subnets.avax.network/echo/testnet/rpc',
+      chainId: 173750
     },
-    amplify: {
-      url: 'https://subnets.avax.network/amplify/testnet/rpc',
-      chainId: 78430
+    'c-chain': {
+      url: 'https://api.avax-test.network/ext/bc/C/rpc',
+      chainId: 43113
     }
   }
 }

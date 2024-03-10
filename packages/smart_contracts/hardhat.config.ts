@@ -1,8 +1,25 @@
-import { HardhatUserConfig } from 'hardhat/config'
-import '@nomicfoundation/hardhat-toolbox'
+import { HardhatUserConfig } from 'hardhat/config';
+import '@nomicfoundation/hardhat-toolbox';
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.18',
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.20",
+        settings: { }
+      },
+      {
+        version: "0.8.18",
+        settings: { }
+      },
+    ],
+    overrides: {
+      "contracts/alebrijesNft.sol": {
+        version: "0.8.20",
+        settings: { }
+      }
+    }
+  },
   networks: {
     echo: {
       url: 'https://subnets.avax.network/echo/testnet/rpc',
@@ -19,6 +36,6 @@ const config: HardhatUserConfig = {
       ]
     }
   }
-}
+};
 
-export default config
+export default config;

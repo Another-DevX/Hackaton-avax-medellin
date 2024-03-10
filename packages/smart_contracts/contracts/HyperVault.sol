@@ -4,20 +4,14 @@ pragma solidity 0.8.18;
 import "../interfaces/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../interfaces/ITeleporterReceiver.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {RequestManager} from "../interfaces/IRequestManager.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
-    struct RequestMessage {
-        address user;
-        address tokenAddress;
-        uint256 amount;
-        uint8 functionId;
-    }
-
+contract HyperVault is ReentrancyGuard, ITeleporterReceiver, RequestManager {
     ITeleporterMessenger public immutable teleporterMessenger;
-    bytes32 private destinationBlockchainID;
-    address private destinationAddress;
-
+    bytes32 public destinationBlockchainID;
+    address public destinationAddress;
+    mapping(address => RequestMessage) public _messages;
     constructor(
         address teleporterMessengerAddress,
         bytes32 _destinationBlockchainID,
@@ -29,7 +23,14 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
     }
 
     function requestFund(address tokenAddress, uint256 amount) external {
-        require(IERC20(msg.sender).balanceof() >= amount, "Not enough funds!");
+        require(
+            IERC20(tokenAddress).balanceOf(msg.sender) >= amount,
+            "Not enough funds!"
+        );
+        require(
+            IERC20(tokenAddress).allowance(msg.sender, address(this)) >= amount,
+            "Not enough allowance!"
+        );
         RequestMessage memory message = RequestMessage({
             user: msg.sender,
             tokenAddress: tokenAddress,
@@ -49,15 +50,16 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         sendMessage(abi.encode(message));
     }
 
-    function fund(address tokenAddress, uint256 amount) internal {
-        IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
+    function fund(address tokenAddress, address user, uint256 amount) public {
+        IERC20(tokenAddress).transferFrom(user, address(this), amount);
     }
+
     function withdraw(
         address tokenAddress,
-        address recipent,
+        address user,
         uint256 amount
-    ) internal {
-        IERC20(tokenAddress).transfer(recipent, amount);
+    ) public {
+        IERC20(tokenAddress).transfer(user, amount);
     }
 
     function sendMessage(bytes memory message) internal returns (bytes32) {
@@ -70,7 +72,7 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
                         feeTokenAddress: address(0),
                         amount: 0
                     }),
-                    requiredGasLimit: 100000,
+                    requiredGasLimit: 1000000,
                     allowedRelayerAddresses: new address[](0),
                     message: message
                 })
@@ -83,17 +85,17 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         bytes calldata message
     ) external {
         RequestMessage memory request = abi.decode(message, (RequestMessage));
+        RequestMessage memory decodedMessage = RequestMessage(
+            request.user,
+            request.tokenAddress,
+            request.amount,
+            request.functionId
+        );
+
         if (request.functionId == 1) {
-            fund(
-                request.tokenAddress,
-                request.amount
-            );
+            fund(request.tokenAddress, request.user, request.amount);
         } else {
-            withdraw(
-                request.tokenAddress,
-                request.user,
-                request.amount
-            );
+            withdraw(request.tokenAddress, request.user, request.amount);
         }
     }
 }

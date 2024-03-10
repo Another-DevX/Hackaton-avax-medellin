@@ -4,22 +4,21 @@ pragma solidity 0.8.18;
 import "../interfaces/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../interfaces/ITeleporterReceiver.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import {RequestManager} from "../interfaces/IRequestManager.sol";
 
-contract HyperVaultManager is ReentrancyGuard, ITeleporterReceiver {
-    struct RequestMessage {
-        address user;
-        address tokenAddress;
-        uint256 amount;
-        uint8 functionId;
-    }
-
-    mapping(address => mapping(address => uint256)) private balances;
-    mapping(address => uint256) private allowedTokensDecimalPlaces;
+contract HyperVaultManager is
+    ReentrancyGuard,
+    ITeleporterReceiver,
+    RequestManager
+{
+    mapping(address => mapping(address => uint256)) public balances;
+    mapping(address => uint8) public allowedTokensDecimalPlaces;
+    mapping(address => RequestMessage) public _messages;
 
     address public owner;
     ITeleporterMessenger public immutable teleporterMessenger;
-    bytes32 private destinationBlockchainID;
-    address private destinationAddress;
+    bytes32 public destinationBlockchainID;
+    address public destinationAddress;
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Must be owner");
@@ -28,17 +27,21 @@ contract HyperVaultManager is ReentrancyGuard, ITeleporterReceiver {
 
     constructor(
         address teleporterMessengerAddress,
-        bytes32 _destinationBlockchainID,
-        address _destinationAddress
+        bytes32 _destinationBlockchainID
     ) {
         teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
         destinationBlockchainID = _destinationBlockchainID;
-        destinationAddress = _destinationAddress;
         owner = msg.sender;
     }
 
-    function addToken(address token, uint256 ammount) external onlyOwner {
-        allowedTokensDecimalPlaces[token] = ammount;
+    function addDestinationAddress(
+        address _destinationAddress
+    ) external onlyOwner {
+        destinationAddress = _destinationAddress;
+    }
+
+    function addToken(address token, uint8 decimals) external onlyOwner {
+        allowedTokensDecimalPlaces[token] = decimals;
     }
 
     function fund(address recipient, address token, uint256 ammount) internal {}
@@ -53,11 +56,11 @@ contract HyperVaultManager is ReentrancyGuard, ITeleporterReceiver {
         address sender,
         address recipient,
         address token,
-        uint256 ammount
+        uint256 amount
     ) external {
-        require(balances[sender][token] >= ammount);
-        balances[sender][token] -= ammount;
-        balances[recipient][token] += ammount;
+        require(balances[sender][token] >= amount);
+        balances[sender][token] -= amount;
+        balances[recipient][token] += amount;
     }
 
     function receiveTeleporterMessage(
@@ -67,17 +70,30 @@ contract HyperVaultManager is ReentrancyGuard, ITeleporterReceiver {
     ) external {
         RequestMessage memory request = abi.decode(message, (RequestMessage));
         if (request.functionId == 1) {
-            require(allowedTokensDecimalPlaces[token] > 0, "Not allowed token");
-            balances[recipient][token] += ammount;
-        } else {
-            require(allowedTokensDecimalPlaces[token] > 0, "Not allowed token");
             require(
-                balances[recipient][token] >= ammount,
+                allowedTokensDecimalPlaces[request.tokenAddress] > 0,
+                "Not allowed token"
+            );
+            balances[request.user][request.tokenAddress] += request.amount;
+        } else {
+            require(
+                allowedTokensDecimalPlaces[request.tokenAddress] > 0,
+                "Not allowed token"
+            );
+            require(
+                balances[request.user][request.tokenAddress] >= request.amount,
                 "Not enough balance"
             );
-            balances[recipient][token] -= ammount;
+            balances[request.user][request.tokenAddress] -= request.amount;
         }
-        sendMessage(abi.encode(message));
+        RequestMessage memory decodedMessage = RequestMessage(
+            request.user,
+            request.tokenAddress,
+            request.amount,
+            request.functionId
+        );
+        _messages[originSenderAddress] = decodedMessage;
+        sendMessage(abi.encode(decodedMessage));
     }
     function sendMessage(bytes memory message) internal returns (bytes32) {
         return

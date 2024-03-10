@@ -2,7 +2,7 @@
 <div><p>A blockchain standard for transfer and manage tokens using Teleporter in subnets, Avalanche network ⚡️.</p></div>
 <div>
 <h2>¿Qué es Hyper vault?</h2>
-<img src="/public/portada.png" width="400" />
+<img src="/public/portada.png" />
 <p>Es una herramienta que permite el envío de mensajes de valor entre subnets y mantiene un estado unificado en la <i>primary network.</i></p>
 <p>Hyper vault soluciona principalmente la transferencia de mensajes que representan activos digitales resguardados en la c-chain (la red principal y más segura). Usamos perfectamente una implementación escalable de WARP usando la interfaz de teleporter y unas configuraciones de x-chain.</p>
 <h2>¿Cómo funciona Hyper vault?</h2>

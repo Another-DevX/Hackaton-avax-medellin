@@ -14,4 +14,13 @@
 2. El contrato <i>hyper-vault manager</i> se encarga de administrar las peticiones hacia el contrato principal. Contiene las funciones de "verificación" y callbacks que proporcionan una respuesta sencilla: tiene fondos o no. 
 
 Este segundo contrato es sumamente importante por la capa de seguridad que le proporciona a la aplicación.</p>
+<h2>User experience y componentes</h2>
+<img src="/public/dashboard.png" />
+<img src="/public/choose-subnet.png" />
+<p>Nuestra aplicación se esfuerza en gran medida por lograr una experiencia de usuario fluída y muy compacta en términos de información, ya que mostrar datos adicionales puede abrumar. 
+
+Principalmente, casa usuario al interacturar con nuestra herramienta, contará con un dashboard que les permitirá consultar la información de sus cuentas, movimientos y la liquidez que tengan en diferentes subnets, así como transferir y hacer staking.
+
+¡Todo esto buscando la mejor experiencia para nuestro usuarios!</p>
+<h2></h2>
 </div>

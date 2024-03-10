@@ -5,8 +5,6 @@ import "../interfaces/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../interfaces/ITeleporterReceiver.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Protocol} from "../structs/Protocol.sol";
-import { FaFileImage } from "react-icons/fa6";
-
 
 contract HyperVaultManager is
     ReentrancyGuard,

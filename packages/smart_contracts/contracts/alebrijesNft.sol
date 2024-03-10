@@ -4,21 +4,16 @@ pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../interfaces/ITeleporterMessenger.sol";
-
 import "@openzeppelin/contracts/access/Ownable.sol";
+import {Protocol} from "../structs/Protocol.sol";
 
-contract Mystic is ERC721, Ownable {
+contract Mystic is ERC721, Ownable,Protocol {
     ITeleporterMessenger public immutable teleporterMessenger;
     bytes32 private destinationBlockchainID;
     address private destinationAddress;
     address private tokenAddress;
 
-    struct Request {
-        address to;
-        address tokenAddress;
-        uint256 amount;
-        uint8 functionId;
-    }
+  
 
     constructor(
         address teleporterMessengerAddress,
@@ -37,12 +32,15 @@ contract Mystic is ERC721, Ownable {
             "https://ipfs.io/ipfs/QmZkF5gsnYHu3nrxvD3GNZ1YVvwx8sysWLTnB1or1tuWsr";
     }
 
-    function preMint() public {
-        Request memory message = Request({
-            to: msg.sender,
+    function preMint(uint256 amount, address recipent) public {
+        require(amount >= 20, "Minimum amount is 20");
+        RequestMessage memory message = RequestMessage({
+            user: msg.sender,
+            recipent: recipent,
             tokenAddress: tokenAddress,
-            amount: 10000000000000000000,
-            functionId: 3
+            amount: amount,
+            functionId: 3,
+            requestId : 0
         });
 
         sendMessage(abi.encode(message));
@@ -70,7 +68,7 @@ contract Mystic is ERC721, Ownable {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        Request memory withdrawRequest = abi.decode(message, (Request));
-        _safeMint(withdrawRequest.to, 0);
+        RequestMessage memory request = abi.decode(message, (RequestMessage));
+        _safeMint(request.recipent, 0);
     }
 }

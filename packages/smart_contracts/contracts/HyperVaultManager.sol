@@ -4,14 +4,14 @@ pragma solidity 0.8.18;
 import "../interfaces/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../interfaces/ITeleporterReceiver.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {RequestManager} from "../interfaces/IRequestManager.sol";
+import {Protocol} from "../structs/Protocol.sol";
 import { FaFileImage } from "react-icons/fa6";
 
 
 contract HyperVaultManager is
     ReentrancyGuard,
     ITeleporterReceiver,
-    RequestManager
+    Protocol
 {
     mapping(address => mapping(address => uint256)) public balances;
     mapping(address => uint8) public allowedTokensDecimalPlaces;
@@ -35,7 +35,7 @@ contract HyperVaultManager is
         destinationBlockchainID = _destinationBlockchainID;
         owner = msg.sender;
     }
-
+    //Register HyperVault address
     function addDestinationAddress(
         address _destinationAddress
     ) external onlyOwner {
@@ -54,16 +54,6 @@ contract HyperVaultManager is
         uint256 ammount
     ) internal {}
 
-    function transfer(
-        address sender,
-        address recipient,
-        address token,
-        uint256 amount
-    ) external {
-        require(balances[sender][token] >= amount);
-        balances[sender][token] -= amount;
-        balances[recipient][token] += amount;
-    }
 
     function receiveTeleporterMessage(
         bytes32 sourceBlockchainID,
@@ -71,13 +61,16 @@ contract HyperVaultManager is
         bytes calldata message
     ) external {
         RequestMessage memory request = abi.decode(message, (RequestMessage));
+        //Add funds
         if (request.functionId == 1) {
             require(
                 allowedTokensDecimalPlaces[request.tokenAddress] > 0,
                 "Not allowed token"
             );
             balances[request.user][request.tokenAddress] += request.amount;
-        } else {
+        } 
+        //Wwithdraw
+        else if (request.functionId == 2) {
             require(
                 allowedTokensDecimalPlaces[request.tokenAddress] > 0,
                 "Not allowed token"
@@ -87,12 +80,24 @@ contract HyperVaultManager is
                 "Not enough balance"
             );
             balances[request.user][request.tokenAddress] -= request.amount;
+        } 
+        //Transfer
+        else if (request.functionId == 3) {             
+            require(
+                balances[request.user][request.tokenAddress] >= request.amount,
+                "Not enough balance"
+            );
+            balances[request.user][request.tokenAddress] -= request.amount;
+            balances[request.recipent][request.tokenAddress] += request.amount;
+
         }
         RequestMessage memory decodedMessage = RequestMessage(
             request.user,
+            request.recipent,
             request.tokenAddress,
             request.amount,
-            request.functionId
+            request.functionId,
+            request.requestId
         );
         _messages[originSenderAddress] = decodedMessage;
         sendMessage(abi.encode(decodedMessage));

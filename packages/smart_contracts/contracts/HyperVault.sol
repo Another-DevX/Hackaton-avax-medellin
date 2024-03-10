@@ -7,17 +7,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
-    /**
-     * @dev Emitted when a message is submited to be sent.
-     */
-    event SendMessage(
-        bytes32 indexed destinationBlockchainID,
-        address indexed destinationAddress,
-        address feeTokenAddress,
-        uint256 feeAmount,
-        uint256 requiredGasLimit,
-        bytes message
-    );
 
     struct FundMessage {
         address recipent;
@@ -26,14 +15,13 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         uint8 functionId;
     }
 
-    /**
-     * @dev Emitted when a new message is received from a given chain ID.
-     */
-    event ReceiveMessage(
-        bytes32 indexed sourceBlockchainID,
-        address indexed originSenderAddress,
-        string message
-    );
+    struct WithdrawRequest {
+        address tokenAddress;
+        uint256 amount;
+        address user;
+        uint8 functionId;
+    }
+
 
     ITeleporterMessenger public immutable teleporterMessenger;
     bytes32 private destinationBlockchainID;
@@ -61,6 +49,16 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         sendMessage(100000, abi.encode(message));
     }
 
+    function requestWithdraw(address tokenAddress, uint256 amount) external {
+        WithdrawRequest memory message = WithdrawRequest({
+            tokenAddress: tokenAddress,
+            amount: amount,
+            user: msg.sender,
+            functionId: 2
+        });
+        sendMessage(100000, abi.encode(message));
+    }
+
     function withdraw(
         address tokenAddress,
         address recipent,
@@ -73,14 +71,6 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         uint256 requiredGasLimit,
         bytes memory message
     ) internal returns (bytes32) {
-        emit SendMessage({
-            destinationBlockchainID: destinationBlockchainID,
-            destinationAddress: destinationAddress,
-            feeTokenAddress: address(0),
-            feeAmount: 0,
-            requiredGasLimit: requiredGasLimit,
-            message: message
-        });
         return
             teleporterMessenger.sendCrossChainMessage(
                 TeleporterMessageInput({
@@ -104,6 +94,14 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
     ) external {
         bool success = abi.decode(message, (bool));
         require(success, "HyperVault: failed to send message");
-        
+        WithdrawRequest memory withdrawRequest = abi.decode(
+            message,
+            (WithdrawRequest)
+        );
+        withdraw(
+            withdrawRequest.tokenAddress,
+            withdrawRequest.user,
+            withdrawRequest.amount
+        );
     }
 }

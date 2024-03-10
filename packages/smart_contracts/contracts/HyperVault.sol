@@ -7,7 +7,6 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
-
     struct FundMessage {
         address recipent;
         uint256 amount;
@@ -21,7 +20,6 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         address user;
         uint8 functionId;
     }
-
 
     ITeleporterMessenger public immutable teleporterMessenger;
     bytes32 private destinationBlockchainID;
@@ -46,7 +44,7 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
             functionId: 1
         });
 
-        sendMessage(100000, abi.encode(message));
+        sendMessage(abi.encode(message));
     }
 
     function requestWithdraw(address tokenAddress, uint256 amount) external {
@@ -56,7 +54,7 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
             user: msg.sender,
             functionId: 2
         });
-        sendMessage(100000, abi.encode(message));
+        sendMessage(abi.encode(message));
     }
 
     function withdraw(
@@ -67,10 +65,7 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         IERC20(tokenAddress).transfer(recipent, amount);
     }
 
-    function sendMessage(
-        uint256 requiredGasLimit,
-        bytes memory message
-    ) internal returns (bytes32) {
+    function sendMessage(bytes memory message) internal returns (bytes32) {
         return
             teleporterMessenger.sendCrossChainMessage(
                 TeleporterMessageInput({
@@ -80,7 +75,7 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
                         feeTokenAddress: address(0),
                         amount: 0
                     }),
-                    requiredGasLimit: requiredGasLimit,
+                    requiredGasLimit: 100000,
                     allowedRelayerAddresses: new address[](0),
                     message: message
                 })
@@ -92,8 +87,6 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        bool success = abi.decode(message, (bool));
-        require(success, "HyperVault: failed to send message");
         WithdrawRequest memory withdrawRequest = abi.decode(
             message,
             (WithdrawRequest)

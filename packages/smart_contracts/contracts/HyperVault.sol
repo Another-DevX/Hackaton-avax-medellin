@@ -7,17 +7,10 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
-    struct FundMessage {
-        address recipent;
-        uint256 amount;
-        address tokenAddress;
-        uint8 functionId;
-    }
-
-    struct WithdrawRequest {
-        address tokenAddress;
-        uint256 amount;
+    struct RequestMessage {
         address user;
+        address tokenAddress;
+        uint256 amount;
         uint8 functionId;
     }
 
@@ -35,28 +28,30 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         destinationAddress = _destinationAddress;
     }
 
-    function fund(address tokenAddress, uint256 amount) external {
-        IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
-        FundMessage memory message = FundMessage({
-            recipent: msg.sender,
-            amount: amount,
+    function requestFund(address tokenAddress, uint256 amount) external {
+        require(IERC20(msg.sender).balanceof() >= amount, "Not enough funds!");
+        RequestMessage memory message = RequestMessage({
+            user: msg.sender,
             tokenAddress: tokenAddress,
+            amount: amount,
             functionId: 1
         });
-
         sendMessage(abi.encode(message));
     }
 
     function requestWithdraw(address tokenAddress, uint256 amount) external {
-        WithdrawRequest memory message = WithdrawRequest({
+        RequestMessage memory message = RequestMessage({
+            user: msg.sender,
             tokenAddress: tokenAddress,
             amount: amount,
-            user: msg.sender,
             functionId: 2
         });
         sendMessage(abi.encode(message));
     }
 
+    function fund(address tokenAddress, uint256 amount) internal {
+        IERC20(tokenAddress).transferFrom(msg.sender, address(this), amount);
+    }
     function withdraw(
         address tokenAddress,
         address recipent,
@@ -87,14 +82,18 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        WithdrawRequest memory withdrawRequest = abi.decode(
-            message,
-            (WithdrawRequest)
-        );
-        withdraw(
-            withdrawRequest.tokenAddress,
-            withdrawRequest.user,
-            withdrawRequest.amount
-        );
+        RequestMessage memory request = abi.decode(message, (RequestMessage));
+        if (request.functionId == 1) {
+            fund(
+                request.tokenAddress,
+                request.amount
+            );
+        } else {
+            withdraw(
+                request.tokenAddress,
+                request.user,
+                request.amount
+            );
+        }
     }
 }

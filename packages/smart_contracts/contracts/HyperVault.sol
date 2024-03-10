@@ -4,10 +4,10 @@ pragma solidity 0.8.18;
 import "../interfaces/ITeleporterMessenger.sol";
 import {ITeleporterReceiver} from "../interfaces/ITeleporterReceiver.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import {RequestManager} from "../interfaces/IRequestManager.sol";
+import {Protocol} from "../structs/Protocol.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract HyperVault is ReentrancyGuard, ITeleporterReceiver, RequestManager {
+contract HyperVault is ReentrancyGuard, ITeleporterReceiver, Protocol {
     ITeleporterMessenger public immutable teleporterMessenger;
     bytes32 public destinationBlockchainID;
     address public destinationAddress;
@@ -33,9 +33,11 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver, RequestManager {
         );
         RequestMessage memory message = RequestMessage({
             user: msg.sender,
+            recipent: address(0),
             tokenAddress: tokenAddress,
             amount: amount,
-            functionId: 1
+            functionId: 1,
+            requestId: 0
         });
         sendMessage(abi.encode(message));
     }
@@ -43,9 +45,11 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver, RequestManager {
     function requestWithdraw(address tokenAddress, uint256 amount) external {
         RequestMessage memory message = RequestMessage({
             user: msg.sender,
+            recipent: address(0),
             tokenAddress: tokenAddress,
             amount: amount,
-            functionId: 2
+            functionId: 2,
+            requestId: 0
         });
         sendMessage(abi.encode(message));
     }
@@ -87,14 +91,16 @@ contract HyperVault is ReentrancyGuard, ITeleporterReceiver, RequestManager {
         RequestMessage memory request = abi.decode(message, (RequestMessage));
         RequestMessage memory decodedMessage = RequestMessage(
             request.user,
+            request.recipent,
             request.tokenAddress,
             request.amount,
-            request.functionId
+            request.functionId,
+            request.requestId
         );
 
         if (request.functionId == 1) {
             fund(request.tokenAddress, request.user, request.amount);
-        } else {
+        } else if (request.functionId == 2) {
             withdraw(request.tokenAddress, request.user, request.amount);
         }
     }

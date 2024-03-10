@@ -7,6 +7,10 @@ const config: HardhatUserConfig = {
     fuji: {
       url: '​https://api.avax-test.network/ext/bc/C/rpc',
       chainId: 43113
+    },
+    amplify: {
+      url: 'https://subnets.avax.network/amplify/testnet/rpc',
+      chainId: 78430
     }
   }
 }

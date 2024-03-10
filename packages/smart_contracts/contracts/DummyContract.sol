@@ -6,12 +6,14 @@ import {ITeleporterReceiver} from "../interfaces/ITeleporterReceiver.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract DummyContract is ReentrancyGuard, ITeleporterReceiver {
-    struct Message {
-        address sender;
-        string message;
+    struct FundMessage {
+        address recipent;
+        uint256 amount;
+        address tokenAddress;
+        uint8 functionId;
     }
 
-    mapping(bytes32 => Message) _messages;
+    mapping(address => FundMessage) public _messages;
     ITeleporterMessenger public immutable teleporterMessenger;
 
     constructor(address teleporterMessengerAddress) {
@@ -23,10 +25,12 @@ contract DummyContract is ReentrancyGuard, ITeleporterReceiver {
         address originSenderAddress,
         bytes calldata message
     ) external {
-        string memory messageString = abi.decode(message, (string));
-        _messages[sourceBlockchainID] = Message(
-            originSenderAddress,
-            messageString
+        FundMessage memory messageDecoded = abi.decode(message, (FundMessage));
+        _messages[originSenderAddress] = FundMessage(
+            messageDecoded.recipent,
+            messageDecoded.amount,
+            messageDecoded.tokenAddress,
+            messageDecoded.functionId
         );
     }
 }

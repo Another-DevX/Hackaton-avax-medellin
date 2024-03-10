@@ -5,10 +5,11 @@ async function main () {
     '0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf'
   const destinationChainId =
     '0x1278d1be4b987e847be3465940eb5066c4604a7fbd6e086900823597d81af4c1'
-
+  const destinationAddress = '0xb880139315372C44B930184f7B124Be8e5D63bc7'
   const hyperVayult = await ethers.deployContract('HyperVault', [
     teleporterMessengerAddress,
-    destinationChainId
+    destinationChainId,
+    destinationAddress
   ])
   const hyperVaultResponse = await hyperVayult.waitForDeployment()
 

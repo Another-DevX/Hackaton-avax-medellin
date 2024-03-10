@@ -2,24 +2,7 @@ import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 
 const config: HardhatUserConfig = {
-  solidity: {
-    compilers: [
-      {
-        version: "0.8.20",
-        settings: { }
-      },
-      {
-        version: "0.8.18",
-        settings: { }
-      },
-    ],
-    overrides: {
-      "contracts/alebrijesNft.sol": {
-        version: "0.8.20",
-        settings: { }
-      }
-    }
-  },
+  solidity: '0.8.18',
   networks: {
     echo: {
       url: 'https://subnets.avax.network/echo/testnet/rpc',

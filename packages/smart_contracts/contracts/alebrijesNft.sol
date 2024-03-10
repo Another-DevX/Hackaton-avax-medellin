@@ -1,65 +1,76 @@
 // SPDX-License-Identifier: MIT
 // Compatible with OpenZeppelin Contracts ^5.0.0
-pragma solidity ^0.8.20;
+pragma solidity 0.8.18;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "../interfaces/ITeleporterMessenger.sol";
 
-/// @custom:security-contact security@hyper.vault
-contract Alebrijes is ERC721, ERC721Enumerable, ERC721URIStorage, ERC721Burnable, AccessControl {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    uint256 private _nextTokenId;
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-    constructor(address defaultAdmin, address minter) ERC721("Alebrijes", "ABJ") {
-        _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
-        _grantRole(MINTER_ROLE, minter);
+contract Mystic is ERC721, Ownable {
+    ITeleporterMessenger public immutable teleporterMessenger;
+    bytes32 private destinationBlockchainID;
+    address private destinationAddress;
+    address private tokenAddress;
+
+    struct Request {
+        address to;
+        address tokenAddress;
+        uint256 amount;
+        uint8 functionId;
+    }
+
+    constructor(
+        address teleporterMessengerAddress,
+        bytes32 _destinationBlockchainID,
+        address _destinationAddress,
+        address _tokenAddress
+    ) ERC721("Mystic", "MTC") Ownable() {
+        teleporterMessenger = ITeleporterMessenger(teleporterMessengerAddress);
+        destinationBlockchainID = _destinationBlockchainID;
+        destinationAddress = _destinationAddress;
+        tokenAddress = _tokenAddress;
     }
 
     function _baseURI() internal pure override returns (string memory) {
-        return "https://photos.app.goo.gl/8QFdi5vP4idSymHTA";
+        return
+            "https://ipfs.io/ipfs/QmZkF5gsnYHu3nrxvD3GNZ1YVvwx8sysWLTnB1or1tuWsr";
     }
 
-    function safeMint(address to, string memory uri) public onlyRole(MINTER_ROLE) {
-        uint256 tokenId = _nextTokenId++;
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    function preMint() public {
+        Request memory message = Request({
+            to: msg.sender,
+            tokenAddress: tokenAddress,
+            amount: 10000000000000000000,
+            functionId: 3
+        });
+
+        sendMessage(abi.encode(message));
     }
 
-    // The following functions are overrides required by Solidity.
-
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override(ERC721, ERC721Enumerable)
-        returns (address)
-    {
-        return super._update(to, tokenId, auth);
+    function sendMessage(bytes memory message) internal returns (bytes32) {
+        return
+            teleporterMessenger.sendCrossChainMessage(
+                TeleporterMessageInput({
+                    destinationBlockchainID: destinationBlockchainID,
+                    destinationAddress: destinationAddress,
+                    feeInfo: TeleporterFeeInfo({
+                        feeTokenAddress: address(0),
+                        amount: 0
+                    }),
+                    requiredGasLimit: 100000,
+                    allowedRelayerAddresses: new address[](0),
+                    message: message
+                })
+            );
     }
 
-    function _increaseBalance(address account, uint128 value)
-        internal
-        override(ERC721, ERC721Enumerable)
-    {
-        super._increaseBalance(account, value);
-    }
-
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
-    }
-
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        override(ERC721, ERC721Enumerable, ERC721URIStorage, AccessControl)
-        returns (bool)
-    {
-        return super.supportsInterface(interfaceId);
+    function receiveTeleporterMessage(
+        bytes32 sourceBlockchainID,
+        address originSenderAddress,
+        bytes calldata message
+    ) external {
+        Request memory withdrawRequest = abi.decode(message, (Request));
+        _safeMint(withdrawRequest.to, 0);
     }
 }

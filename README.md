@@ -13,7 +13,7 @@
 
 2. El contrato <i>hyper-vault manager</i> se encarga de administrar las peticiones hacia el contrato principal. Contiene las funciones de "verificación" y callbacks que proporcionan una respuesta sencilla: tiene fondos o no. 
 
-Este segundo contrato es sumamente importante por la capa de seguridad que le proporciona a la aplicación.</p>
+Este segundo contrato es sumamente importante por la capa de seguridad que le proporciona a la aplicación misma.</p>
 <h2>User experience y componentes</h2>
 <img src="/public/dashboard.png" />
 <img src="/public/choose-subnet.png" />

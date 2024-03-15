@@ -30,7 +30,7 @@ Principalmente, casa usuario al interacturar con nuestra herramienta, contará c
 <p>En un principo, nos sostendremos de los bajos fees que cobraremos por cada transacción que use nuestra herramienta, apuntamos a ser una de las aplicaciones más usadas y con ese algo flujo de usuarios esperados, podremos obtener grandes fondos para seguir mejorando la aplicación.</p>
 <h2>Roadmap de Hyper vault</h2>
 <img src="/public/roadmap.png">
-<p>¡Buscamos convertirnos en un standard en Avalanche! </p>
+<p>¡Buscamos convertirnos en un standard escalable en Avalanche! </p>
 </div>
 <h1>¡Olvídate de los bridges, usa <i>Hyper vault</i>!</h1>
 <a href="https://www.canva.com/design/DAF_FmTDrEM/FoFrzc6Vk0rX13-TkKWvFw/view?utm_content=DAF_FmTDrEM&utm_campaign=designshare&utm_medium=link&utm_source=editor">Link to presentation ⭐️</a><hr>

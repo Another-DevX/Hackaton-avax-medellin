@@ -27,7 +27,7 @@ Principalmente, casa usuario al interacturar con nuestra herramienta, contará c
 <p>Entre las principales características están las planteadas en la imagen, pero esta herramienta abre un océano azul de oportunidades para crear proyectos que usen nuestra herramienta, desde DeFi, hasta gaming y mucho más.</p>
 <h2>Modelo de negocios</h2>
 <img src="/public/money-model.png">
-<p>En un principo, nos sostendremos de los bajos fees que cobraremos por cada transacción que use nuestra herramienta, apuntamos a ser una de las aplicaciones más usadas y con ese algo flujo de usuarios esperados, podremos obtener grandes fondos para seguir mejorando la aplicación.</p>
+<p>En un principo, nos sostendremos de los bajos fees que cobraremos por cada transacción que use nuestra herramienta, apuntamos a ser una de las aplicaciones más usadas y con ese alto flujo de usuarios esperados, podremos obtener grandes fondos para seguir mejorando la aplicación.</p>
 <h2>Roadmap de Hyper vault</h2>
 <img src="/public/roadmap.png">
 <p>¡Buscamos convertirnos en un standard escalable en Avalanche! </p>
